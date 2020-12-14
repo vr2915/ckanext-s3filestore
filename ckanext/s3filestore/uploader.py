@@ -318,8 +318,8 @@ class S3Uploader(BaseS3Uploader):
 
         try:
             url = self.get_signed_url_to_key(key_path)
-            h.redirect_to(url)
-
+            #h.redirect_to(url) #stanti
+            return url#stanti 
 
         except ClientError as ex:
             if ex.response['Error']['Code'] in ['NoSuchKey', '404']:
@@ -332,6 +332,7 @@ class S3Uploader(BaseS3Uploader):
 
             # Uploader interface does not know about s3 errors
             raise OSError(errno.ENOENT)
+        
 
     def metadata(self, filename):
         '''
@@ -444,6 +445,7 @@ class S3ResourceUploader(BaseS3Uploader):
 
         directory = self.get_directory(id, self.storage_path)
         filepath = os.path.join(directory, filename)
+
         return filepath
 
     def upload(self, id, max_size=10):
@@ -490,22 +492,28 @@ class S3ResourceUploader(BaseS3Uploader):
         key_path = self.get_path(id, filename)
         key = filename
 
+        log.info('Downloading file %s', key)
+
         if key is None:
             log.warning("Key '%s' not found in bucket '%s'",
                      key_path, self.bucket_name)
 
         try:
             url = self.get_signed_url_to_key(key_path)
-            h.redirect_to(url)
+            #h.redirect_to(url) #stanti
+            return url #stanti
 
         except ClientError as ex:
             if ex.response['Error']['Code'] in ['NoSuchKey', '404']:
                 # attempt fallback
+                log.info('Attempting Fallback %s', key) #stanti
                 default_resource_upload = DefaultResourceUpload(self.resource)
                 return default_resource_upload.download(id, self.filename)
             else:
                 # Controller will raise 404 for us
                 raise OSError(errno.ENOENT)
+        
+         
 
     def metadata(self, id, filename=None):
         if filename is None:
